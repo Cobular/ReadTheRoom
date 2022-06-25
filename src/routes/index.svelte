@@ -1,2 +1,14 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script context="module">
+  export const prerender = true;
+</script>
+
+<script lang="ts">
+  import JoinGame from "$lib/components/join-game.svelte";
+</script>
+
+<h1>Welcome to ...</h1>
+<h1> Read The Room!! </h1>
+<p> Enter a room code and your name to join a game! </p>
+
+<JoinGame />
+

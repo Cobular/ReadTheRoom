@@ -20,7 +20,6 @@ export async function RealtimeWritableFactory<T>(documentString: string, initial
 	// Ensure consistency between the database and the local copy
 	const secondSnapshot = await (await get(docRef)).val();
 
-	debugger;
 	return new RealtimeWritable(documentString, secondSnapshot as T);
 }
 

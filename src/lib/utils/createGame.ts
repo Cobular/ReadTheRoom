@@ -1,28 +1,42 @@
-import gameStoreStore from "$lib/stores/gameStoreStore";
-import { RealtimeWritable, RealtimeWritableFactory } from "$lib/stores/realtimeStore";
-import { GameState, type Game } from "$lib/types/game";
+import gameStoreStore from '$lib/stores/gameStoreStore';
+import { RealtimeWritable, RealtimeWritableFactory } from '$lib/stores/realtimeStore';
+import { GameState, type Game, type Round } from '$lib/types/game';
 
-export async function createOrJoinGame(roomCode: string, playerId: string, playerName: string): Promise<RealtimeWritable<Game>> {
-  console.log("createOrJoinGame", roomCode, playerId);
-  const gameStore = await RealtimeWritableFactory<Game>(`games/${roomCode}`, {
-    id: crypto.randomUUID(),
-    players: [{
-      id: playerId,
-      name: playerName
-    }],
-    roomCode: roomCode,
-    state: GameState.WAITING_FOR_PLAYERS,
-    roundNum: 0,
-    owner: playerId
-  });
+export const blankRound: Round = {
+  question: {
+    question: ''
+  },
+  answers: []
+}
 
-  console.log("About to commit")
+export async function createOrJoinGame(
+	roomCode: string,
+	playerId: string,
+	playerName: string
+): Promise<RealtimeWritable<Game>> {
+	console.log('createOrJoinGame', roomCode, playerId);
+	const gameStore = await RealtimeWritableFactory<Game>(`games/${roomCode}`, {
+		id: crypto.randomUUID(),
+		players: [
+			{
+				id: playerId,
+				name: playerName
+			}
+		],
+		roomCode: roomCode,
+		state: GameState.WAITING_FOR_PLAYERS,
+		roundNum: 0,
+		owner: playerId,
+		currentRound: blankRound
+	});
 
-  gameStore.commit({});
+	console.log('About to commit');
 
-  gameStoreStore.set(gameStore);
+	gameStore.commit({});
 
-  console.log({gameStore: gameStore.value});
+	gameStoreStore.set(gameStore);
 
-  return gameStore;
+	console.log({ gameStore: gameStore.value });
+
+	return gameStore;
 }

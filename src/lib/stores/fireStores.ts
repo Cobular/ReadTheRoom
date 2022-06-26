@@ -12,16 +12,20 @@ export class FirestoreWritable<T extends Record<string, any>> implements Readabl
 		private readonly documentSupplier: () => DocumentReference<T>,
 		private readonly initial: T,
 		private readonly debounceDelayMs: number = 1000
-	) {}
+	) {
+		this.remoteStore = writable(this.initial);
+		this.localStore = derived([this.remoteStore, this.stageStore], ([remote, stage]) => ({
+			...remote,
+			...stage
+		}));
+		this.subscribe = this.localStore.subscribe;
+	}
 
 	private connected = false;
-	private readonly remoteStore: Writable<T> = writable(this.initial);
+	private readonly remoteStore: Writable<T>;
 	private readonly stageStore: Writable<Partial<T>> = writable({});
-	private readonly localStore: Readable<T> = derived(
-		[this.remoteStore, this.stageStore],
-		([remote, stage]) => ({ ...remote, ...stage })
-	);
-	public readonly subscribe: Readable<T>['subscribe'] = this.localStore.subscribe;
+	private readonly localStore: Readable<T>;
+	public readonly subscribe: Readable<T>['subscribe'];
 
 	connect() {
 		if (this.connected) throw new Error('Already connected');
@@ -65,17 +69,18 @@ export class FirestoreWritable<T extends Record<string, any>> implements Readabl
 	}
 }
 
-class FirestoreWritableField<T extends Record<string, any>, K extends keyof T>
+class FirestoreWritableField<T extends Record<string, unknown>, K extends keyof T>
 	implements Writable<T[K]>
 {
-	constructor(private readonly parent: FirestoreWritable<T>, private readonly key: K) {}
+	constructor(private readonly parent: FirestoreWritable<T>, private readonly key: K) {
+		this.derivedStore = derived(this.parent, (parentValue) => parentValue[this.key]);
+		this.subscribe = this.derivedStore.subscribe;
+		this.push = this.parent.push;
+	}
 
-	private readonly derivedStore: Readable<T[K]> = derived(
-		this.parent,
-		(parentValue) => parentValue[this.key]
-	);
-	public readonly subscribe = this.derivedStore.subscribe;
-	public readonly push = this.parent.push;
+	private readonly derivedStore: Readable<T[K]>;
+	public readonly subscribe;
+	public readonly push;
 
 	set(value: T[K]) {
 		const patch: Partial<T> = {};

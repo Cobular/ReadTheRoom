@@ -47,9 +47,9 @@
 {:else if $gameStore.state === GameState.COIN_FLIP}
 	<CoinFlip {gameStore} {thisUserId} />
 {:else if $gameStore.state === GameState.REVEAL}
-	<Reveal {gameStore} />
+	<Reveal {gameStore} {thisUserId} />
 {:else if $gameStore.state === GameState.NO_REVEAL}
-	<NoReveal {gameStore} />
+	<NoReveal {gameStore} {thisUserId} />
 {:else if $gameStore.state === GameState.FINISHED}
 	<Finished {gameStore} />
 {/if}

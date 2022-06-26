@@ -43,7 +43,7 @@ export interface Game {
   /// The current round index. The current player who chooses a question is found by modulus this with the number of players.
   roundNum: number;
   /// The current round
-  currentRound?: Round;
+  currentRound: Round;
   /// The ID of the player who first started the game
   owner: string;
 }

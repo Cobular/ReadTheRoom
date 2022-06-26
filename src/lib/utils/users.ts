@@ -24,6 +24,10 @@ export function getAsker(game: Game): Player {
 	return game.players[current_index];
 }
 
+export function getOwner(game: Game): Player | undefined {
+	return game.players.find((player) => player.id === game.owner);
+}
+
 export function isPlayerAsker(game: Game, uid: string): boolean {
 	const num_players = game.players.length;
 	const current_index = game.roundNum % num_players;

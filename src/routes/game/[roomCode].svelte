@@ -21,8 +21,6 @@
 
 	const gameStore = $gameStoreStore;
 
-	debugger;
-
 	let thisUserId = $authStore.user !== undefined ? $authStore.user.uid : '';
 
 	if (thisUserId === '') {
@@ -32,9 +30,6 @@
 
 <p>Room Code: {$gameStore.roomCode}</p>
 <p>Your name: {getPlayer($gameStore, thisUserId)?.name}</p>
-<p>
-	{`Game: ${JSON.stringify($gameStore, undefined, 2)}`};
-</p>
 
 {#if $gameStore.state === GameState.WAITING_FOR_PLAYERS}
 	<WaitingForPlayers {gameStore} />

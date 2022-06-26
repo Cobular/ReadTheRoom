@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { post } from '../../routes/api/createGame';
+	import { createOrJoinGame } from '$lib/utils/createGame';
 	import { getAuth, signInAnonymously, updateProfile } from 'firebase/auth';
-	import type { AuthError } from 'firebase/auth';
-	import authStore from '$lib/stores/authStore';
+	import { goto } from '$app/navigation';
+import { makeOrGetUser } from '$lib/utils/users';
 
 	let roomCode: string;
 	let roomCodeError: string | undefined = undefined;
@@ -23,35 +23,20 @@
 			// Need to auth the user with firebase then redirect to the game page
 			const auth = getAuth();
 			try {
-				let user = await signInAnonymously(auth);
+				let user = await makeOrGetUser(playerName);
 
-				await updateProfile(user.user, {
-					displayName: playerName
-				})
+				await createOrJoinGame(roomCode, user.user.uid, playerName);
 
-				let response = await fetch('/api/createGame', {
-					method: 'POST',
-					body: new URLSearchParams({
-						roomCode,
-						playerName
-					}),
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded'
-					}
-				});
-
-				if (response.ok) {
-					window.location.href = `/game/${roomCode}`;
-				} else {
-					roomCodeError = 'Could not join room';
-				}
+				goto(`/game/${roomCode}`);
 			} catch (error: any) {
-				console.error(error)
+				console.error(error);
 				roomCodeError = error.message;
 				return;
 			}
 		}
 	}
+
+
 </script>
 
 {#if roomCodeError}

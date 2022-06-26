@@ -8,4 +8,3 @@ exports.ssrServer = functions.region("us-central1").https.onRequest(async (reque
   functions.logger.info("Requested resource: " + request.originalUrl);
   return ssrServerServer(request, response);
 });
-});

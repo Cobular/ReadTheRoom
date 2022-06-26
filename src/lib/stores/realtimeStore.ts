@@ -2,27 +2,6 @@ import { writable, type Readable, type Writable } from 'svelte/store';
 import { getDatabase, onValue, ref, type DatabaseReference, set, get } from 'firebase/database';
 import { mergeDeep } from '$lib/utils/mergeDeep';
 
-/// Gets the content in the database, if any exists, then merges it with the default content before creating our copy of the content.
-export async function RealtimeWritableFactory<T>(documentString: string, initial: T): Promise<RealtimeWritable<T>> {
-	const db = getDatabase();
-	const docRef = ref(db, documentString);
-
-	const firstSnapshot = await get(docRef);
-
-	// Initialize the database
-	if (firstSnapshot.exists()) {
-		const newValue = mergeDeep(firstSnapshot.val(), initial) as T;
-		await set(docRef, newValue);
-	} else {
-		await set(docRef, initial);
-	}
-
-	// Ensure consistency between the database and the local copy
-	const secondSnapshot = await (await get(docRef)).val();
-
-	return new RealtimeWritable(documentString, secondSnapshot as T);
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class RealtimeWritable<T extends Record<string, any>> implements Readable<T> {
 	private readonly docRef: DatabaseReference;
@@ -31,14 +10,19 @@ export class RealtimeWritable<T extends Record<string, any>> implements Readable
 	// The value of this store, always synchronized with the database
 	public value: T;
 
-	constructor(private readonly documentString: string, private readonly initial: T) {
+	/// This constructor always populates the store with the contents of initial
+	/// Will not itself ensure synchronization with the cloud
+	private constructor(private readonly documentString: string, private readonly initial: T) {
+		// Setup document references
 		const db = getDatabase();
-		this.docRef = ref(db, this.documentString);
-		this.svelteStore = writable(this.initial);
-		this.svelteStore.subscribe((value) => (this.value = value));
+		this.docRef = ref(db, this.documentString);		
 
-		this.subscribe = this.svelteStore.subscribe;
+		// Setup the internal svelte store
+		this.svelteStore = writable(this.initial);
 		this.value = this.initial;
+		// Fill this.value with the value of the store
+		this.svelteStore.subscribe((value) => (this.value = value));
+		this.subscribe = this.svelteStore.subscribe;
 		
 		// Pull down cloud data every time the store is updated
 		onValue(this.docRef, (snapshot) => {
@@ -48,6 +32,42 @@ export class RealtimeWritable<T extends Record<string, any>> implements Readable
 			}
 		});
 	}
+
+	/// Create both a new RealtimeStore locally and a new document in RealtimeDB with the same initial value
+	/// Will override the cloud instance if safe is true, otherwise it will throw if the document already exists
+	public static async newFromInitial<T>(documentString: string, initial: T, safe = true): Promise<RealtimeWritable<T>> {
+		// Setup the cloud store stuff
+		const db = getDatabase();
+		const docRef = ref(db, documentString);
+		const snapshot = await get(docRef);
+
+		// if we're in safe mode, and the document exists, throw
+		if (safe === true && snapshot.exists())
+			throw new Error(`Document ${documentString} already exists`);
+
+		// Otherwise, create the document in the backend
+		await set(docRef, initial);
+
+		// Setup the local version of the store
+		return new RealtimeWritable(documentString, initial);
+	}
+
+	/// Create a new RealtimeStore locally, taking the initial value from the cloud
+	public static async newExistingStore<T>(documentString: string): Promise<RealtimeWritable<T>> {
+		// Setup the cloud store stuff
+		const db = getDatabase();
+		const docRef = ref(db, documentString);
+		const snapshot = await get(docRef);
+
+		// Check if the cloud document exists
+		if (snapshot.exists()) {
+			// Setup the local version of the store
+			return new RealtimeWritable(documentString, snapshot.val() as T);
+		} else {
+			throw new Error(`Document ${documentString} does not exist`);
+		}
+	}
+	
 
 	// Merge in data when new data arrives
 	async commit(patch: Partial<T>) {

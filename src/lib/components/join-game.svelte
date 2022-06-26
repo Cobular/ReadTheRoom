@@ -25,7 +25,13 @@ import { makeOrGetUser } from '$lib/utils/users';
 			try {
 				let user = await makeOrGetUser(playerName);
 
-				await createOrJoinGame(roomCode, user.user.uid, playerName);
+				let res = await createOrJoinGame(roomCode, user.user.uid, playerName);
+
+				if (res === false) {
+					// Game is in progress
+					roomCodeError = "Game already in progress"
+					return
+				}
 
 				goto(`/game/${roomCode}`);
 			} catch (error: any) {

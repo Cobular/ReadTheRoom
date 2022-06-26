@@ -21,6 +21,8 @@
 
 	const gameStore = $gameStoreStore;
 
+	debugger;
+
 	let thisUserId = $authStore.user !== undefined ? $authStore.user.uid : '';
 
 	if (thisUserId === '') {

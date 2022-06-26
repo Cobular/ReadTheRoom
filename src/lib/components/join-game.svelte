@@ -2,7 +2,7 @@
 	import { createOrJoinGame } from '$lib/utils/createGame';
 	import { getAuth, signInAnonymously, updateProfile } from 'firebase/auth';
 	import { goto } from '$app/navigation';
-import { makeOrGetUser } from '$lib/utils/users';
+	import { makeOrGetUser } from '$lib/utils/users';
 
 	let roomCode: string;
 	let roomCodeError: string | undefined = undefined;
@@ -29,8 +29,8 @@ import { makeOrGetUser } from '$lib/utils/users';
 
 				if (res === false) {
 					// Game is in progress
-					roomCodeError = "Game already in progress"
-					return
+					roomCodeError = 'Game already in progress';
+					return;
 				}
 
 				goto(`/game/${roomCode}`);
@@ -41,15 +41,16 @@ import { makeOrGetUser } from '$lib/utils/users';
 			}
 		}
 	}
-
-
 </script>
 
 {#if roomCodeError}
 	<p class="error">{roomCodeError}</p>
 {/if}
 
-<form on:submit|preventDefault={handleSubmit}>
+<form
+	on:submit|preventDefault={handleSubmit}
+	class="max-w-sm flex flex-col items-center m-auto justify-self-center rounded-md border-2 border-gray-300 p-2 mt-20"
+>
 	<label for="roomCode">Room Code</label>
 	<input
 		name="roomCode"
@@ -58,31 +59,20 @@ import { makeOrGetUser } from '$lib/utils/users';
 		minlength="4"
 		required
 		type="number"
+		class="appearance-none rounded-sm border"
 	/>
 
-	<label for="playerName">Player Name</label>
-	<input name="playerName" placeholder="Name" bind:value={playerName} required />
+	<label for="playerName" class="pt-5">Player Name</label>
+	<input name="playerName" placeholder="Name" bind:value={playerName} required class="appearance-none rounded-sm border" />
 
-	<input type="submit" value="Join Game" />
+	<input type="submit" value="Join Game!" class="p-1 rounded-md" />
 </form>
 
 <style lang="scss">
-	form {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
 	label {
 		margin-bottom: 0.5rem;
 	}
 	input {
 		margin-bottom: 0.5rem;
-	}
-	input[type='submit'] {
-		margin-top: 0.5rem;
-	}
-
-	input:invalid {
-		border: 2px dashed red;
 	}
 </style>

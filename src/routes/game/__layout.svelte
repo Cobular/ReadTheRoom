@@ -1,19 +1,14 @@
-<nav>
-  <h3>Read The Room!</h3>
+<script lang="ts">
+  
+</script>
 
-  <h5>Join Different Game</h5>
-  <h5>Sign Out</h5>
-</nav>
+<div class="p-3 flex flex-col">
+	<nav class="flex  gap-3">
+		<h3 class="text-3xl font-semibold">Read The Room!</h3>
 
-<slot />
-
-<style lang="scss">
-  nav {
-    display: flex;
-    flex-direction: row;
-
-    :first-child {
-      margin-right: auto
-    }
-  }
-</style>
+		<h5 class="ml-auto underline-light-blue-400 underline transition hover:(decoration-3 cursor-pointer)">Leave Game</h5>
+	</nav>
+	<main>
+		<slot />
+	</main>
+</div>

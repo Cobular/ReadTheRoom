@@ -1,8 +1,9 @@
 <script>
+	import 'virtual:windi.css';
 	import authStore from '$lib/stores/authStore';
-	
+
 	import { initializeApp } from 'firebase/app';
-	import { getAnalytics } from "firebase/analytics";
+	import { getAnalytics } from 'firebase/analytics';
 	import { getAuth, onAuthStateChanged } from 'firebase/auth';
 	import { onMount } from 'svelte';
 
@@ -18,7 +19,7 @@
 		};
 
 		const app = initializeApp(firebaseConfig);
-		getAnalytics(app)
+		getAnalytics(app);
 
 		const auth = getAuth();
 		onAuthStateChanged(auth, (user) => {
@@ -29,6 +30,9 @@
 			});
 		});
 	});
+
+	import { browser } from '$app/env';
+	if (browser) import('virtual:windi-devtools');
 </script>
 
 <slot />
